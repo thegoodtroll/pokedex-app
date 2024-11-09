@@ -12,8 +12,8 @@ app = Flask(__name__, static_folder='../pokedex-gui/build', static_url_path='/')
 
 # Configure CORS for production
 CORS(app, resources={
-    r"/upload-image": {"origins": "*"},  # Adjust this to specific domains in production
-    r"/api/*": {"origins": "*"}
+    r"/upload-image": {"origins": "https://pokedex-1hlc.onrender.com"},  # Adjust this to specific domains in production
+    r"/api/*": {"origins": "https://pokedex-1hlc.onrender.com"}
 })
 
 # Set the base directory to the parent of backend_env
