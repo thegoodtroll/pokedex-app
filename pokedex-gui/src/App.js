@@ -4,6 +4,9 @@ import cameraSound from './assets/camera.mp3';
 import scanSound from './assets/scan.mp3';
 import backgroundMusic from './assets/cerulean-city.wav';
 
+// Define your Flask backend URL here
+const API_URL = "https://pokedex-app-b83a.onrender.com";
+
 function App() {
     const [capturedPhoto, setCapturedPhoto] = useState(null);
     const [capturedPhotoURL, setCapturedPhotoURL] = useState(null);
@@ -117,7 +120,7 @@ function App() {
 
             try {
                 console.log('Sending image to backend...');
-                const response = await fetch('http://127.0.0.1:5000/upload-image', {
+                const response = await fetch(`${API_URL}/upload-image`, {
                     method: 'POST',
                     body: imageData,
                     headers: { 'Accept': 'application/json' },
