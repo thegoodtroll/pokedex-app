@@ -13,27 +13,6 @@
   box-sizing: border-box;
 }
 
-/* Pokedex fold line */
-.App::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  height: 100%;
-  width: 8px;
-  background: linear-gradient(to right, 
-    #960000,
-    #cc0000 30%,
-    #ffffff 50%,
-    #cc0000 70%,
-    #960000
-  );
-  box-shadow: 
-    -2px 0 4px rgba(0, 0, 0, 0.3),
-    2px 0 4px rgba(0, 0, 0, 0.3);
-  z-index: 1;
-}
-
 /* Main blue light */
 .blue-light {
   position: absolute;

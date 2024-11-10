@@ -18,6 +18,7 @@ function App() {
     const [isMusicPlaying, setIsMusicPlaying] = useState(false);
     const [volume, setVolume] = useState(0.3);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+    const [useFrontCamera, setUseFrontCamera] = useState(false);
 
     // Audio refs
     const backgroundMusicRef = useRef(new Audio(backgroundMusic));
@@ -65,6 +66,25 @@ function App() {
         backgroundMusicRef.current.volume = volume;
     };
 
+    const toggleCamera = async () => {
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+        }
+        setUseFrontCamera(!useFrontCamera);
+        if (isCameraActive) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: !useFrontCamera ? "user" : "environment"
+                    }
+                });
+                setVideoStream(stream);
+            } catch (error) {
+                console.error('Error switching camera:', error);
+            }
+        }
+    };
+
     const handleToggleCameraPhoto = async () => {
         if (!isCameraActive) {
             setPokemonImage(null);
@@ -95,7 +115,11 @@ function App() {
             }
         } else {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: useFrontCamera ? "user" : "environment"
+                    }
+                });
                 setVideoStream(stream);
                 setIsCameraActive(true);
             } catch (error) {
@@ -197,6 +221,15 @@ function App() {
                         />
                     )}
                 </div>
+                {isCameraActive && (
+                    <button 
+                        className="sound-button"
+                        onClick={toggleCamera}
+                        title={useFrontCamera ? "Switch to Back Camera" : "Switch to Front Camera"}
+                    >
+                        {useFrontCamera ? "📱" : "🤳"}
+                    </button>
+                )}
             </div>
 
             {/* Decorative elements */}
