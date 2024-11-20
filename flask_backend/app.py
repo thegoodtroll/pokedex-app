@@ -21,8 +21,8 @@ base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 OWLVIT_API = "https://owl-vit-api-150344248755.europe-west1.run.app"
 CLASSIFICATION_API = "https://pokemon-classification-api-150344248755.europe-west1.run.app"
 
-# GitHub raw content URL for Pokemon images
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/thegoodtroll/pokedex-app/master/images"
+# Cloud Storage URL for Pokemon images
+CLOUD_STORAGE_URL = "https://storage.googleapis.com/pokemonflaskapi-images"
 
 # Serve React App's static files
 @app.route('/')
@@ -194,13 +194,13 @@ def get_pokemon_image(predicted_pokemon):
     try:
         # Normalize predicted Pokémon name
         predicted_pokemon = predicted_pokemon.lower().replace(" ", "-")
-
-        # Construct the GitHub raw URL for the image
-        image_url = f"{GITHUB_RAW_URL}/{predicted_pokemon}.png"
-
-        # Fetch the image from GitHub
+        
+        # Construct the Cloud Storage URL for the image
+        image_url = f"{CLOUD_STORAGE_URL}/{predicted_pokemon}.png"
+        
+        # Fetch the image from Cloud Storage
         response = requests.get(image_url)
-
+        
         # Check if the request was successful
         if response.status_code == 200:
             # Convert the image data to base64
@@ -210,7 +210,7 @@ def get_pokemon_image(predicted_pokemon):
             return None
 
     except Exception as e:
-        print(f"Error fetching image for {predicted_pokemon}: {str(e)}")
+        print(f"Error getting image for {predicted_pokemon}: {str(e)}")
         return None
 
 if __name__ == '__main__':
