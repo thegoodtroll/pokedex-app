@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_file, send_from_directory
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from PIL import Image, ImageDraw
 import io
@@ -6,16 +6,13 @@ import base64
 import os
 import requests
 
-app = Flask(__name__, static_folder='../pokedex-gui/build', static_url_path='/')
+app = Flask(__name__)
 
 # Configure CORS for production
 CORS(app, resources={
-    r"/upload-image": {"origins": "https://pokedex-1hlc.onrender.com"},  # Adjust this to specific domains in production
-    r"/api/*": {"origins": "https://pokedex-1hlc.onrender.com"}
+    r"/upload-image": {"origins": ["https://pokedex-1hlc.onrender.com", "http://localhost:3000"]},
+    r"/api/*": {"origins": ["https://pokedex-1hlc.onrender.com", "http://localhost:3000"]}
 })
-
-# Set the base directory to the parent of backend_env
-base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 # Cloud Run API endpoints
 OWLVIT_API = "https://owl-vit-api-150344248755.europe-west1.run.app"
@@ -23,19 +20,6 @@ CLASSIFICATION_API = "https://pokemon-classification-api-150344248755.europe-wes
 
 # Cloud Storage URL for Pokemon images
 CLOUD_STORAGE_URL = "https://storage.googleapis.com/pokemonflaskapi-images"
-
-# Serve React App's static files
-@app.route('/')
-def serve():
-    return send_from_directory(app.static_folder, 'index.html')
-
-# Serve React App's static files for all routes
-@app.route('/<path:path>')
-def serve_path(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/api/health')
 def health():
@@ -214,6 +198,5 @@ def get_pokemon_image(predicted_pokemon):
         return None
 
 if __name__ == '__main__':
-    # In production you might want to use a production WSGI server
-    # For development:
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)

@@ -1,2 +1,6 @@
 # Node.js files
 pokedex-gui/node_modules/
+
+# APIs
+api_classification_model/
+api_owl_vit/

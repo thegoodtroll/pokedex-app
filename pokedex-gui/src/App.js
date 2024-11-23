@@ -5,7 +5,7 @@ import scanSound from './assets/scan.mp3';
 import backgroundMusic from './assets/cerulean-city.wav';
 
 // Define your Flask backend URL here
-const API_URL = "https://pokedex-app-b83a.onrender.com";
+const API_URL = "https://flask-backend-150344248755.europe-west1.run.app";
 
 function App() {
     const [capturedPhoto, setCapturedPhoto] = useState(null);
