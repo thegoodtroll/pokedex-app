@@ -178,13 +178,13 @@
   align-items: center;
   position: relative;
   z-index: 2;
-  padding: 15px;
+  padding: 10px;
   box-sizing: border-box;
 }
 
 .pokemon-label-wrapper {
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: center;
   padding: 0 10px;
@@ -209,20 +209,22 @@
   max-width: 90%;
 }
 
+/* Updated Pokemon image container */
 .pokemon-image-container {
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-end;
+  align-items: flex-end;
   width: 100%;
-  padding: 10px;
+  padding: 0 20px 10px 0;
   box-sizing: border-box;
   position: relative;
+  margin-top: -60px;  /* Changed from -40px to -60px (moved higher) */
 }
 
 .pokemon-image {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 85%;  /* Reduced from 90% */
+  max-height: 85%;  /* Reduced from 90% */
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.3));
@@ -450,6 +452,16 @@
     font-size: 0.9rem;
     padding: 4px 8px;
   }
+
+  .pokemon-image-container {
+    padding: 0 15px 8px 0;
+    margin-top: -65px;  /* Changed from -45px to -65px (moved higher) */
+  }
+
+  .pokemon-image {
+    max-width: 80%;  /* Reduced from 85% */
+    max-height: 80%;  /* Reduced from 85% */
+  }
 }
 
 /* Landscape mode (tablets) */
@@ -504,5 +516,15 @@
   .pokemon-label {
     font-size: 1rem;
     padding: 6px 12px;
+  }
+
+  .pokemon-image-container {
+    padding: 0 25px 12px 0;
+    margin-top: -65px;  /* Changed from -45px to -65px (moved higher) */
+  }
+
+  .pokemon-image {
+    max-width: 83%;  /* Reduced from 88% */
+    max-height: 83%;  /* Reduced from 88% */
   }
 }
