@@ -11,7 +11,7 @@ def test_upload_image():
     print(f"Image exists: {os.path.exists(test_image_path)}")
 
     # URL for the upload endpoint
-    url = "http://localhost:5000/upload-image"
+    url = "https://flask-backend-150344248755.europe-west1.run.app/upload-image"
     print(f"Making request to: {url}\n")
 
     # Open the image file

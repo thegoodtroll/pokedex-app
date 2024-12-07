@@ -16,10 +16,10 @@ gcloud run deploy flask-backend \
   --region europe-west1 \
   --project pokemonflaskapi \
   --allow-unauthenticated \
-  --memory 512Mi \
-  --cpu 1 \
-  --min-instances 1 \
+  --memory 4Gi \
+  --cpu 2 \
+  --min-instances 0 \
   --max-instances 10 \
-  --concurrency 80 \
+  --concurrency 50 \
   --cpu-boost \
   --execution-environment gen2

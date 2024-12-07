@@ -2,5 +2,7 @@
 pokedex-gui/node_modules/
 
 # APIs
-api_classification_model/
-api_owl_vit/
+flask_backend/deply.sh
+flask_backend/requirements.txt
+flask_backend/Dockerfile
+flask_backend/backend_env/
