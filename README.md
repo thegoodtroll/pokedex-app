@@ -129,40 +129,15 @@ We welcome contributions! Here's how you can help:
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🌟 Acknowledgments
 
 - Pokémon & Pokédex are registered trademarks of Nintendo
 - Special thanks to the open-source community
 - Inspired by the original Pokédex design
-- Thanks to all contributors and testers
-
-## 📞 Support
-
-- Create an issue for bug reports
-- Join our Discord community
-- Check out the Wiki for detailed documentation
-
 ---
 
 <div align="center">
 Made with ❤️ by Pokémon fans, for Pokémon fans
 </div>
-
-```
-                                   ,'|
-                                 ,/  |
-                               ,'    |
-                             ,'      |
-                           ,'        |
-                         ,'          |
-                      ,-'            |
-                   ,-'               |
-                ,-'                  |
-             ,-'                     |
-          ,-'                        |
-       ,-'                           |
-    ,-'                              |
- ,-'                                 |
-'-------------------------------------|
