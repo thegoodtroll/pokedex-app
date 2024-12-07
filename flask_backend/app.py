@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ExifTags
 import io
 import base64
 import os
 import requests
+import torch
+from transformers import OwlViTProcessor, OwlViTForObjectDetection, ViTForImageClassification, ViTImageProcessor
 
 app = Flask(__name__)
 
@@ -14,12 +16,51 @@ CORS(app, resources={
     r"/api/*": {"origins": ["https://pokedex-1hlc.onrender.com", "http://localhost:3000"]}
 })
 
-# Cloud Run API endpoints
-OWLVIT_API = "https://owl-vit-api-150344248755.europe-west1.run.app"
-CLASSIFICATION_API = "https://pokemon-classification-api-150344248755.europe-west1.run.app"
-
 # Cloud Storage URL for Pokemon images
 CLOUD_STORAGE_URL = "https://storage.googleapis.com/pokemonflaskapi-images"
+
+# Initialize ML models
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Initialize OWL-ViT model
+od_model = OwlViTForObjectDetection.from_pretrained("google/owlvit-base-patch32").to(device)
+od_processor = OwlViTProcessor.from_pretrained("google/owlvit-base-patch32")
+
+# Initialize Classification model
+classification_model = ViTForImageClassification.from_pretrained("shorndrup/pokemon-classification-model").to(device)
+feature_extractor = ViTImageProcessor.from_pretrained("shorndrup/pokemon-classification-model")
+
+def fix_image_rotation(image):
+    try:
+        # Get EXIF data
+        exif = image._getexif()
+        if exif is None:
+            return image
+
+        # Find the orientation tag
+        orientation_key = None
+        for key in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[key] == 'Orientation':
+                orientation_key = key
+                break
+
+        if orientation_key is None or orientation_key not in exif:
+            return image
+
+        # Apply the rotation based on EXIF orientation
+        orientation = exif[orientation_key]
+        if orientation == 3:
+            return image.rotate(180, expand=True)
+        elif orientation == 6:
+            return image.rotate(270, expand=True)
+        elif orientation == 8:
+            return image.rotate(90, expand=True)
+        
+    except (AttributeError, KeyError, IndexError):
+        # If there's any error processing EXIF data, return original image
+        pass
+    
+    return image
 
 @app.route('/api/health')
 def health():
@@ -36,6 +77,9 @@ def upload_image():
 
     # Open the image using PIL directly from memory
     image = Image.open(io.BytesIO(image_file.read()))
+    
+    # Fix image rotation based on EXIF data
+    image = fix_image_rotation(image)
 
     # Run object detection
     detection_results, cropped_image = object_detection(image)
@@ -70,108 +114,90 @@ def upload_image():
         })
 
 def object_detection(image):
-    # Convert image to bytes
-    img_byte_arr = io.BytesIO()
-    # Ensure image is in RGB mode before saving as JPEG
-    if image.mode != 'RGB':
-        image = image.convert('RGB')
-    image.save(img_byte_arr, format='JPEG')
-    img_byte_arr = img_byte_arr.getvalue()
-
-    # Prepare the files for the request
-    files = {
-        'image': ('image.jpg', img_byte_arr, 'image/jpeg')
-    }
-
     try:
-        # Make request to Cloud Run API
-        response = requests.post(f"{OWLVIT_API}/detect", files=files)
-        
-        if response.status_code == 200:
-            results = response.json()
-            boxes = results.get("boxes", [])
-            scores = results.get("scores", [])
-            labels = results.get("labels", [])
-            text = results.get("text", [])
+        # Ensure image is in RGB mode
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
 
-            # Initialize variables to track the best detection
-            score_threshold = 0.01  # set the threshold for the predicted boxes
-            best_box = None
+        # Define queries for object detection
+        queries = [["a photo of a pokemon", "a photo of a human face", "a photo of a couch", "a photo of kids toys"]]
+
+        # Process image with OWL-ViT
+        inputs = od_processor(text=queries, images=image, return_tensors="pt", padding=True).to(device)
+        outputs = od_model(**inputs)
+
+        # Get detection results
+        results = od_processor.post_process(outputs, torch.tensor([image.size[::-1]]).to(device))
+
+        # Initialize variables to track the best detection
+        score_threshold = 0.01
+        best_box = None
+        highest_score = 0
+
+        boxes = results[0]['boxes']
+        scores = results[0]['scores']
+        labels = results[0]['labels']
+
+        # Find the best pokemon detection
+        for box, score, label in zip(boxes, scores, labels):
+            if score >= score_threshold:
+                if queries[0][label] == "a photo of a pokemon":
+                    if score > highest_score:
+                        highest_score = score
+                        best_box = box.tolist()
+
+        if best_box is not None:
+            print("Pokemon detected!")
+
+            # The cropped image for classification
+            cropped_image = image.crop(best_box)
+
+            # Draw rectangle
+            draw = ImageDraw.Draw(image)
+            draw.rectangle(best_box, outline="red", width=3)
+
+            return {"detected": True, "image": image}, cropped_image
+
+        else:
+            # Initialize variables for any detection
             highest_score = 0
+            best_box = None
 
-            # Iterate through each detected object and save the cropped region for "a photo of a pokemon" with the highest score
             for box, score, label in zip(boxes, scores, labels):
                 if score >= score_threshold:
-                    if text[label] == "a photo of a pokemon":
-                        if score > highest_score:
-                            highest_score = score
-                            best_box = box
+                    if score > highest_score:
+                        highest_score = score
+                        best_box = box.tolist()
 
             if best_box is not None:
-                print("Pokemon detected!")
-
-                # The cropped image for classification
-                cropped_image = image.crop(best_box)
-
-                # Draw rectangle
+                print("No Pokemon detected!")
                 draw = ImageDraw.Draw(image)
-                draw.rectangle(best_box, outline="red", width=3)
-
-                return {"detected": True, "image": image}, cropped_image
+                draw.rectangle(best_box, outline="black", width=3)
+                return {"detected": False, "image": image}, None
 
             else:
-                # Initialize variables to track the highest probability and its corresponding box
-                score_threshold = 0.01  # set the threshold for the predicted boxes
-                highest_score = 0
-                best_box = None
-
-                for box, score, label in zip(boxes, scores, labels):
-                    if score >= score_threshold:
-                        if score > highest_score:
-                            highest_score = score
-                            best_box = box
-
-                if best_box is not None:
-                    print("No Pokemon detected!")
-                    draw = ImageDraw.Draw(image)
-                    draw.rectangle(best_box, outline="black", width=3)
-                    return {"detected": False, "image": image}, None
-
-                else:
-                    print("No boxes detected on image!")
-                    return {"detected": False, "image": image}, None
-        else:
-            print(f"API request failed with status code: {response.status_code}")
-            return {"detected": False, "image": image}, None
+                print("No boxes detected on image!")
+                return {"detected": False, "image": image}, None
 
     except Exception as e:
-        print(f"Error calling Cloud Run API: {str(e)}")
+        print(f"Error in object detection: {str(e)}")
         return {"detected": False, "image": image}, None
 
 def classification(image_cropped):
     try:
-        # Convert image to bytes
-        img_byte_arr = io.BytesIO()
-        image_cropped.save(img_byte_arr, format='JPEG')
-        img_byte_arr = img_byte_arr.getvalue()
+        # Ensure the image is in RGB mode
+        if image_cropped.mode != 'RGB':
+            image_cropped = image_cropped.convert('RGB')
 
-        # Prepare the files for the request
-        files = {
-            'image': ('image.jpg', img_byte_arr, 'image/jpeg')
-        }
+        # Process image and get prediction
+        extracted = feature_extractor(images=image_cropped, return_tensors='pt').to(device)
+        predicted_id = classification_model(**extracted).logits.argmax(-1).item()
+        predicted_pokemon = classification_model.config.id2label[predicted_id]
 
-        # Make request to Classification API
-        response = requests.post(f"{CLASSIFICATION_API}/classify", files=files)
-        
-        if response.status_code == 200:
-            result = response.json()
-            return result.get("predicted_pokemon")
-        else:
-            print(f"Classification API request failed with status code: {response.status_code}")
-            return "Unknown Pokemon"
+        return predicted_pokemon
 
     except Exception as e:
-        print(f"Error calling Classification API: {str(e)}")
+        print(f"Error in classification: {str(e)}")
         return "Unknown Pokemon"
 
 def get_pokemon_image(predicted_pokemon):
