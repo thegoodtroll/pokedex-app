@@ -13,7 +13,8 @@ app = Flask(__name__)
 # Configure CORS for production
 CORS(app, resources={
     r"/upload-image": {"origins": ["https://pokedex-1hlc.onrender.com", "http://localhost:3000"]},
-    r"/api/*": {"origins": ["https://pokedex-1hlc.onrender.com", "http://localhost:3000"]}
+    r"/api/*": {"origins": ["https://pokedex-1hlc.onrender.com", "http://localhost:3000"]},
+    r"/health-check": {"origins": ["https://pokedex-1hlc.onrender.com", "http://localhost:3000"]}
 })
 
 # Cloud Storage URL for Pokemon images
@@ -64,6 +65,10 @@ def fix_image_rotation(image):
 
 @app.route('/api/health')
 def health():
+    return jsonify({"status": "healthy"})
+
+@app.route('/health-check')
+def health_check():
     return jsonify({"status": "healthy"})
 
 @app.route('/upload-image', methods=['POST'])

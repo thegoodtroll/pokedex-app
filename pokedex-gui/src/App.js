@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
+import LoadingScreen from './components/LoadingScreen';
 import cameraSound from './assets/camera.mp3';
 import scanSound from './assets/scan.mp3';
 import backgroundMusic from './assets/cerulean-city.wav';
@@ -19,11 +20,46 @@ function App() {
     const [volume, setVolume] = useState(0.3);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
     const [useFrontCamera, setUseFrontCamera] = useState(false);
+    const [isInitializing, setIsInitializing] = useState(true);
+    const [cameraError, setCameraError] = useState(null);
 
     // Audio refs
     const backgroundMusicRef = useRef(new Audio(backgroundMusic));
     const cameraSoundRef = useRef(new Audio(cameraSound));
     const scanSoundRef = useRef(new Audio(scanSound));
+
+    // Initialize backend on load
+    useEffect(() => {
+        const warmupBackend = async () => {
+            try {
+                // Try the health-check endpoint first
+                const response = await fetch(`${API_URL}/health-check`);
+                if (response.ok) {
+                    setIsInitializing(false);
+                    return;
+                }
+
+                // If health-check fails, try the api/health endpoint
+                const apiResponse = await fetch(`${API_URL}/api/health`);
+                if (apiResponse.ok) {
+                    setIsInitializing(false);
+                    return;
+                }
+
+                // If both fail, try the main endpoint
+                const mainResponse = await fetch(API_URL);
+                if (mainResponse.ok) {
+                    setIsInitializing(false);
+                }
+            } catch (error) {
+                console.error('Error warming up backend:', error);
+                // Still hide loading screen after a timeout even if there's an error
+                setTimeout(() => setIsInitializing(false), 3000);
+            }
+        };
+
+        warmupBackend();
+    }, []);
 
     // Set up background music
     useEffect(() => {
@@ -79,8 +115,11 @@ function App() {
                     }
                 });
                 setVideoStream(stream);
+                setCameraError(null);
             } catch (error) {
                 console.error('Error switching camera:', error);
+                setCameraError("Failed to switch camera. Please check your camera permissions.");
+                setIsCameraActive(false);
             }
         }
     };
@@ -90,6 +129,7 @@ function App() {
             setPokemonImage(null);
             setPredictedPokemon(null);
             setCapturedPhotoURL(null);
+            setCameraError(null);
         }
 
         if (isCameraActive) {
@@ -111,6 +151,7 @@ function App() {
                 videoStream.getTracks().forEach(track => track.stop());
             } catch (error) {
                 console.error('Error capturing photo:', error);
+                setCameraError("Failed to capture photo. Please try again.");
                 restoreBackgroundVolume();
             }
         } else {
@@ -122,8 +163,10 @@ function App() {
                 });
                 setVideoStream(stream);
                 setIsCameraActive(true);
+                setCameraError(null);
             } catch (error) {
                 console.error('Error starting camera:', error);
+                setCameraError("Failed to access camera. Please check your camera permissions and ensure no other app is using the camera.");
             }
         }
     };
@@ -189,6 +232,10 @@ function App() {
             }
         }
     };
+
+    if (isInitializing) {
+        return <LoadingScreen />;
+    }
 
     return (
         <div className="App">
@@ -259,6 +306,11 @@ function App() {
                         capturedPhotoURL && <img src={capturedPhotoURL} alt="Captured" />
                     )}
                     {isLoading && <div className="scanning"></div>}
+                    {cameraError && (
+                        <div className="camera-error">
+                            {cameraError}
+                        </div>
+                    )}
                 </div>
             </div>
             
