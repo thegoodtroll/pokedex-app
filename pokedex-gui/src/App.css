@@ -1,0 +1,534 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e60012 0%, #cc0000 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Main blue light */
+.blue-light {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle at 30% 30%, 
+    #ffffff 0%,
+    #7fecff 30%,
+    #38b6ff 60%, 
+    #0099ff 100%
+  );
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 
+    0 0 15px #38b6ff,
+    inset 0 0 15px rgba(0, 0, 0, 0.5),
+    0 0 2px 2px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s infinite;
+  z-index: 2;
+}
+
+/* Indicator lights */
+.indicator-lights {
+  position: absolute;
+  left: 120px;
+  top: 30px;
+  display: flex;
+  gap: 12px;
+  z-index: 2;
+}
+
+.light {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 0 5px rgba(0, 0, 0, 0.5),
+    inset 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.light-red {
+  background: radial-gradient(circle at 30% 30%, #ff9999, #ff0000);
+  animation: blink 1.5s infinite;
+}
+
+.light-yellow {
+  background: radial-gradient(circle at 30% 30%, #fff5a5, #ffd700);
+  animation: blink 1.5s infinite 0.5s;
+}
+
+.light-green {
+  background: radial-gradient(circle at 30% 30%, #90ee90, #00ff00);
+  animation: blink 1.5s infinite 1s;
+}
+
+/* Screen containers */
+.left-screen {
+  background: linear-gradient(135deg, #1a1a1a, #000000);
+  border: 12px solid #333;
+  border-radius: 15px;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.8),
+    0 5px 15px rgba(0, 0, 0, 0.3),
+    inset 0 0 50px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  position: relative;
+  transform: perspective(1000px) rotateX(5deg);
+}
+
+.right-screen {
+  background: #052505;  /* Darker, more muted green */
+  border: 12px solid #0a3a0a; /* Darker green border */
+  border-radius: 15px;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.8),
+    0 5px 15px rgba(0, 0, 0, 0.3),
+    inset 0 0 50px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  position: relative;
+  transform: perspective(1000px) rotateX(5deg);
+}
+
+.left-screen::before,
+.right-screen::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  right: -12px;
+  bottom: -12px;
+  background: linear-gradient(135deg, #0a3a0a, #031503);
+  border-radius: 15px;
+  z-index: -1;
+}
+
+/* Screen grid pattern */
+.screen-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(0, 255, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px);
+  background-size: 15px 15px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Screen overlay effect */
+.screen-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.right-screen .screen-overlay {
+  box-shadow: 
+    inset 0 0 30px rgba(0, 255, 0, 0.15),
+    inset 0 0 60px rgba(0, 255, 0, 0.1);
+}
+
+/* Camera container */
+.camera-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  position: relative;
+  z-index: 1;
+}
+
+.camera-container video,
+.camera-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Pokemon result container */
+.pokemon-result-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  padding: 10px;
+  box-sizing: border-box;
+  justify-content: flex-start;
+}
+
+.pokemon-label-wrapper {
+  width: 100%;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.pokemon-label {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  color: #0f0;
+  background-color: rgba(0, 20, 0, 0.8);
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 2px solid #0f0;
+  text-shadow: 0 0 5px #0f0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+}
+
+/* Updated Pokemon image container */
+.pokemon-image-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  position: relative;
+  min-height: 200px;
+}
+
+.pokemon-image {
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.3));
+}
+
+/* Buttons */
+.buttons-container {
+  display: flex;
+  gap: 30px;
+  z-index: 3;
+  margin: 20px 0;
+  position: relative;
+}
+
+.button {
+  padding: 15px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(to bottom, 
+    #ff4444,
+    #cc0000 50%,
+    #990000
+  );
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  border-radius: 25px 25px 0 0;
+}
+
+.button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.2),
+    transparent
+  );
+  border-radius: 0 0 25px 25px;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(to bottom, 
+    #ff5555,
+    #dd0000 50%,
+    #aa0000
+  );
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.3),
+    0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+  background: linear-gradient(to bottom, 
+    #cc0000,
+    #990000 50%,
+    #660000
+  );
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.button:disabled {
+  background: linear-gradient(to bottom, #666, #444);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Sound controls */
+.sound-controls {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 15px;
+  z-index: 1000;
+}
+
+.sound-button {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #444, #222);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.3),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.sound-button:hover {
+  background: linear-gradient(135deg, #555, #333);
+  transform: scale(1.1);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.volume-control {
+  position: relative;
+}
+
+.volume-slider {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 120px;
+  height: 24px;
+  margin-top: 10px;
+  background: linear-gradient(135deg, #444, #222);
+  border-radius: 12px;
+  padding: 5px;
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.3),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { opacity: 0.8; box-shadow: 0 0 10px #38b6ff; }
+  50% { opacity: 1; box-shadow: 0 0 20px #38b6ff, 0 0 30px #38b6ff; }
+  100% { opacity: 0.8; box-shadow: 0 0 10px #38b6ff; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+/* Scanning effect */
+.scanning {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    transparent,
+    rgba(122, 255, 122, 0.2),
+    transparent
+  );
+  animation: scan 2s linear infinite;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Camera error message */
+.camera-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #ff0000;
+  padding: 15px;
+  border-radius: 5px;
+  text-align: center;
+  max-width: 80%;
+  z-index: 5;
+}
+
+/* Responsive layouts */
+/* Portrait mode (phones and tablets) */
+@media (orientation: portrait) {
+  .left-screen {
+    width: 85%;
+    aspect-ratio: 4/3;
+    margin-top: 100px;
+  }
+
+  .right-screen {
+    width: 85%;
+    aspect-ratio: 4/3;
+    margin-top: 30px;
+  }
+
+  .buttons-container {
+    margin: 30px 0;
+  }
+
+  .blue-light {
+    left: 15px;
+    top: 15px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .indicator-lights {
+    left: 100px;
+    top: 25px;
+  }
+
+  .light {
+    width: 15px;
+    height: 15px;
+  }
+
+  .button {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+  }
+
+  .pokemon-label {
+    font-size: 0.9rem;
+    padding: 4px 8px;
+  }
+
+  .pokemon-image-container {
+    min-height: 150px;
+  }
+}
+
+/* Landscape mode (tablets) */
+@media (orientation: landscape) {
+  .App {
+    flex-direction: row;
+    justify-content: center;
+    padding: 20px;
+    gap: 60px;
+  }
+
+  .left-screen {
+    width: 40%;
+    aspect-ratio: 4/3;
+    margin-top: 60px;
+  }
+
+  .right-screen {
+    width: 40%;
+    aspect-ratio: 4/3;
+    margin-top: 60px;
+  }
+
+  .buttons-container {
+    position: fixed;
+    bottom: 40px;
+    gap: 40px;
+  }
+
+  .blue-light {
+    left: 20px;
+    top: 20px;
+    width: 60px;
+    height: 60px;
+  }
+
+  .indicator-lights {
+    left: 120px;
+    top: 30px;
+  }
+
+  .light {
+    width: 20px;
+    height: 20px;
+  }
+
+  .button {
+    padding: 15px 30px;
+    font-size: 1rem;
+  }
+
+  .pokemon-label {
+    font-size: 1rem;
+    padding: 6px 12px;
+  }
+
+  .pokemon-image-container {
+    min-height: 200px;
+  }
+}
