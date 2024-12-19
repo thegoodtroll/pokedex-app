@@ -17,6 +17,8 @@ function App() {
     const [videoStream, setVideoStream] = useState(null);  
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isAudioLoading, setIsAudioLoading] = useState(false);
+    const [isAudioPlaying, setIsAudioPlaying] = useState(false);
     const [isMusicPlaying, setIsMusicPlaying] = useState(true);
     const [volume, setVolume] = useState(0.3);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
@@ -362,6 +364,8 @@ function App() {
                                 isActive={predictedPokemon && predictedPokemon !== "No Pokémon detected"}
                                 onStartSpeak={lowerBackgroundVolume}
                                 onEndSpeak={restoreBackgroundVolume}
+                                onLoadingChange={setIsAudioLoading}
+                                onPlayingChange={setIsAudioPlaying}
                             />
                         </>
                     )}
@@ -369,7 +373,11 @@ function App() {
             </div>
 
             <div className="buttons-container">
-                <button onClick={handleToggleCameraPhoto} className="button">
+                <button 
+                    onClick={handleToggleCameraPhoto} 
+                    className="button"
+                    disabled={isLoading || isAudioLoading || isAudioPlaying}
+                >
                     {isCameraActive ? 'Take Photo' : 'Activate Camera'}
                 </button>
                 <button 

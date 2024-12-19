@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import './PokemonSpeaker.css';
 
-const PokemonSpeaker = ({ pokemonName, isActive, onStartSpeak, onEndSpeak }) => {
+const PokemonSpeaker = ({ pokemonName, isActive, onStartSpeak, onEndSpeak, onLoadingChange, onPlayingChange }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [audioElement, setAudioElement] = useState(null);
@@ -16,6 +16,7 @@ const PokemonSpeaker = ({ pokemonName, isActive, onStartSpeak, onEndSpeak }) => 
                 onEndSpeak();
             }
             setIsPlaying(false);
+            onPlayingChange(false);
             return;
         }
 
@@ -26,16 +27,19 @@ const PokemonSpeaker = ({ pokemonName, isActive, onStartSpeak, onEndSpeak }) => 
             
             cachedAudio.onended = () => {
                 setIsPlaying(false);
+                onPlayingChange(false);
                 onEndSpeak();
             };
 
             onStartSpeak();
             cachedAudio.play();
             setIsPlaying(true);
+            onPlayingChange(true);
             return;
         }
 
         setIsLoading(true);
+        onLoadingChange(true);
         try {
             // First get the Pokémon description
             const descResponse = await fetch(`${API_URL}/get-pokemon-description`, {
@@ -77,18 +81,23 @@ const PokemonSpeaker = ({ pokemonName, isActive, onStartSpeak, onEndSpeak }) => 
             audio.onended = () => {
                 setIsPlaying(false);
                 setIsLoading(false);
+                onPlayingChange(false);
                 onEndSpeak();
             };
 
             onStartSpeak();
             audio.play();
             setIsPlaying(true);
+            onPlayingChange(true);
             setIsLoading(false);
+            onLoadingChange(false);
 
         } catch (error) {
             console.error('Error in text-to-speech:', error);
             setIsPlaying(false);
             setIsLoading(false);
+            onPlayingChange(false);
+            onLoadingChange(false);
             onEndSpeak();
         }
     };
@@ -103,7 +112,7 @@ const PokemonSpeaker = ({ pokemonName, isActive, onStartSpeak, onEndSpeak }) => 
             >
                 {isLoading ? (
                     <div className="loading-circle"></div>
-                ) : isPlaying ? '🔊' : '🔈'}
+                ) : <span></span>}
             </button>
             {isPlaying && !isLoading && (
                 <div className="sound-wave">
